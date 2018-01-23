@@ -76,7 +76,7 @@ func ShowAllQuestions() {
 
 
 			//fmt.Printf("%s %s\n", k, v)
-			fmt.Fprintf(fout, "%s %s\n", k, v)
+			fmt.Fprintf(fout, "%s$%s\n", k, v)
 			kv[string(k)] = string(v)
 		}
 		return nil
