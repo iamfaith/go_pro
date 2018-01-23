@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"log"
-	_ "github.com/mattn/go-sqlite3"
-	"database/sql"
+	//_ "github.com/mattn/go-sqlite3"
+	//"database/sql"
+	_ "encoding/json"
+	"os"
 )
 
 var (
@@ -14,32 +16,32 @@ var (
 )
 
 
-func readSqlite() {
-	db, err := sql.Open("sqlite3", "./data.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	rows, err := db.Query("select quiz, answer from questions")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var quiz string
-		var ans string
-		err = rows.Scan(&quiz, &ans)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(quiz, ans)
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+//func readSqlite() {
+//	db, err := sql.Open("sqlite3", "./data.db")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer db.Close()
+//
+//	rows, err := db.Query("select quiz, answer from questions")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer rows.Close()
+//	for rows.Next() {
+//		var quiz string
+//		var ans string
+//		err = rows.Scan(&quiz, &ans)
+//		if err != nil {
+//			log.Fatal(err)
+//		}
+//		fmt.Println(quiz, ans)
+//	}
+//	err = rows.Err()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//}
 
 func initDb() {
 	var err error
@@ -59,11 +61,22 @@ func initDb() {
 func ShowAllQuestions() {
 	var kv = map[string]string{}
 	memoryDb.View(func(tx *bolt.Tx) error {
+
+		userFile := "data.txt"
+		fout,err := os.Create(userFile)
+		defer fout.Close()
+		if err != nil {
+			fmt.Println(userFile,err)
+		}
+
 		// Assume bucket exists and has keys
 		b := tx.Bucket([]byte(QuestionBucket))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("key=%s, value=%s\n", k, v)
+
+
+			//fmt.Printf("%s %s\n", k, v)
+			fmt.Fprintf(fout, "%s %s\n", k, v)
 			kv[string(k)] = string(v)
 		}
 		return nil
@@ -91,9 +104,9 @@ func CountQuestions() int {
 
 func main() {
 	fmt.Println("Hello, World!")
-	//initDb()
-	//CountQuestions()
-	//ShowAllQuestions()
-	//memoryDb.Close()
-	readSqlite()
+	initDb()
+	CountQuestions()
+	ShowAllQuestions()
+	memoryDb.Close()
+	//readSqlite()
 }
